@@ -57,19 +57,31 @@ $conn = mysqli_connect($servername, $username, $password, $database);
 // -----------------------------------------------
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $alert = 0;
-    $title = $_POST['title'];
-    $description = $_POST['description'];
+    if (isset($_POST['snoEdit'])) {
+
+        $sno = $_POST["snoEdit"];
+        $title = $_POST['titleEdit'];
+        $description = $_POST['descriptionEdit'];
 
 
-    $sql = "INSERT INTO iNote (title, description) VALUES ('$title', '$description')";
+        $sql = "UPDATE iNote SET title = '$title', description = '$description' WHERE iNote.sno = $sno";
 
-    $result = mysqli_query($conn, $sql);
-
-    if ($result) {
-        $alert = 1;
+        $result = mysqli_query($conn, $sql);
     } else {
-        $alert = 2;
+        $alert = 0;
+        $title = $_POST['title'];
+        $description = $_POST['description'];
+
+
+        $sql = "INSERT INTO iNote (title, description) VALUES ('$title', '$description')";
+
+        $result = mysqli_query($conn, $sql);
+
+        if ($result) {
+            $alert = 1;
+        } else {
+            $alert = 2;
+        }
     }
 
 }
@@ -84,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bootstrap demo</title>
+    <title>iNote</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="//cdn.datatables.net/2.0.7/css/dataTables.dataTables.min.css">
@@ -92,9 +104,48 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <body>
 
+    <!-- Edit Button trigger modal -->
+    <!-- <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal">
+        Edit
+    </button> -->
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="editModalLabel">Modal title</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="/" method="POST">
+                        <input type="hidden" name="snoEdit" id="snoEdit">
+                        <div class="row mb-3">
+                            <label for="title" class="col-sm-2 col-form-label">Title</label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" name="titleEdit" id="titleEdit">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label for="description" class="col-sm-2 col-form-label">Description</label>
+                            <div class="col-sm-10">
+                                <textarea type="text" class="form-control" name="descriptionEdit" id="descriptionEdit" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Note</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">iNote</a>
+            <a class="navbar-brand" href="/">iNote</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
                 aria-label="Toggle navigation">
@@ -119,18 +170,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <div class="container">
         <?php
-        if($alert == 1) {
+        if ($alert == 1) {
             echo "<div class='alert alert-success alert-dismissible fade show' role='alert'>
             <strong>Success!!</strong>Your Note has been added successfully
             <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>
           </div>";
-        } elseif($alert ==2) {
+        } elseif ($alert == 2) {
             echo "<div class='alert alert-warning alert-dismissible fade show' role='alert'>
             <strong>Warning!</strong> Something went wrong.
             <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>
           </div>";
         }
-    ?>
+        ?>
     </div>
 
     <div class="container my-4">
@@ -145,7 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <div class="row mb-3">
                 <label for="description" class="col-sm-2 col-form-label">Description</label>
                 <div class="col-sm-10">
-                    <input type="text" class="form-control" name="description" id="description">
+                    <textarea type="text" class="form-control" name="description" id="description" rows="3"></textarea>
                 </div>
             </div>
             <button type="submit" class="btn btn-primary">Add Note</button>
@@ -161,10 +212,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <table class="table table-hover display my-4" id="myTable">
             <thead>
                 <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">First</th>
-                    <th scope="col">Last</th>
-                    <th scope="col">Handle</th>
+                    <th scope="col">S.No.</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -179,7 +230,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <th scope='row'>" . $count . "</th>
                         <td>" . $row['title'] . "</td>
                         <td>" . $row['description'] . "</td>
-                        <td>Action</td>
+                        <td><button class='edit btn btn-sm btn-primary' id=" . $row['sno'] . ">Edit</button>&nbsp;<a href='#'>Delete</a></td>
                     </tr>
                         ";
                         $count += 1;
@@ -200,6 +251,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <script>
         $(document).ready(function () {
             $('#myTable').DataTable();
+        });
+    </script>
+    <script>
+        edits = document.getElementsByClassName('edit');
+        Array.from(edits).forEach((element) => {
+            element.addEventListener("click", (e) => {
+                console.log("Edit ", e.target);
+                tr = e.target.parentNode.parentNode;
+                title = tr.getElementsByTagName("td")[0].innerText;
+                description = tr.getElementsByTagName("td")[1].innerText;
+                console.log(title, description);
+                titleEdit.value = title;
+                descriptionEdit.value = description;
+                snoEdit.value = e.target.id;
+                console.log(e.target.id);
+                $('#editModal').modal('toggle');
+            });
         });
     </script>
 </body>
